@@ -36,6 +36,7 @@ function OpenItem({ it }: { it: OpenItemT }) {
       <div className="oi-main">
         <div className="oi-name">{it.name}</div>
         <div className="oi-meta">Owner: {it.owner}</div>
+        {it.actionNote && <div className="oi-action-note">{it.actionNote}</div>}
       </div>
       <span className={"oi-days num " + cls}>{it.days}d open</span>
     </div>
@@ -63,6 +64,7 @@ function Risk({ r }: { r: RiskT }) {
           </span>
           <span style={{ color: "var(--ink-3)" }}>{r.note}</span>
         </div>
+        {r.actionNote && <div className="oi-action-note">{r.actionNote}</div>}
       </div>
     </div>
   );

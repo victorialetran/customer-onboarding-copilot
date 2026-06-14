@@ -180,16 +180,18 @@ const day8: Scenario = {
     },
   ],
   recovered: {
-    status: "green",
+    // Honest "recovering" overlay: nothing's been resolved yet. We just touched
+    // the account today. Only `lastContact` genuinely flips green.
+    status: "amber",
     label: "Recovering",
-    headline: "Recovery in motion — Sam looped in on DM access.",
-    sub: "Nudge sent and Sam is now named on the blocker. Watching for the access handshake.",
-    pace: { checklistPct: 54, elapsedPct: 57, dayLabel: "Day 8 of 14", note: "Closing the gap" },
+    headline: "Recovery in motion — awaiting response.",
+    sub: "Nudge sent to Marcus naming Sam. Dot stays amber until the customer acts.",
+    pace: { checklistPct: 50, elapsedPct: 57, dayLabel: "Day 8 of 14", note: "Behind by 7 pts" },
     signals: {
-      pace:        { level: "amber", why: "Behind by 3 points" },
-      lastContact: { level: "green", why: "Reached out — Sam now named" },
-      blockers:    { level: "green", why: "DM access owner engaged" },
-      sentiment:   { level: "green", why: "Re-engaged after nudge" },
+      pace:        { level: "amber", why: "Behind by 7 points — no checklist progress from a nudge alone" },
+      lastContact: { level: "green", why: "Reached out today — Sam named directly" },
+      blockers:    { level: "amber", why: "DM access still open — Sam hasn't replied yet" },
+      sentiment:   { level: "amber", why: "Cooling — no reply yet from Marcus or Sam" },
     },
     checklist: [
       { state: "done" },
@@ -197,7 +199,7 @@ const day8: Scenario = {
       { state: "done" },
       { state: "done" },
       { state: "done" },
-      { state: "active", note: "Sam looped in — access unblocking" },
+      { state: "active", note: "Nudge sent today — awaiting Sam" },
       { state: "todo" },
       { state: "todo" },
       { state: "todo" },
@@ -205,8 +207,8 @@ const day8: Scenario = {
     ],
     accountStatus: {
       lastContact: "2026-06-08",
-      summary: "Nudge sent and Sam is now named directly on the DM access grant. The sandbox agent stays ready to flip live the moment access lands.",
-      whatsNext: "Watch for Sam's access handshake. Once live, kick off the deferred tone & escalation alignment with Dani.",
+      summary: "Nudge sent to Marcus naming Sam directly on DM platform admin access. No reply yet.",
+      whatsNext: "Watch for Sam's reply. Don't follow up until they respond or 2 business days pass.",
     },
   },
 };

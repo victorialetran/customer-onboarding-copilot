@@ -8,8 +8,37 @@ export function OngoingContext({
   timeline: TimelineEntry[];
 }) {
   const day = snap.day || 0;
-  const shown = timeline.filter((e) => e.day <= day);
-  const lastUpdated = shown.length ? shown[shown.length - 1].date : "—";
+  const base = timeline.filter((e) => e.day <= day);
+  const extras = snap.extraTimeline ?? [];
+
+  // Combined render: base entries first (oldest → newest), then approved-action
+  // entries appended in approval order.
+  type Row = {
+    key: string;
+    date: string;
+    text: string;
+    strategistAction: boolean;
+  };
+  const rows: Row[] = [
+    ...base.map(
+      (e): Row => ({
+        key: `b-${e.date}`,
+        date: e.date,
+        text: e.text,
+        strategistAction: false,
+      }),
+    ),
+    ...extras.map(
+      (e, i): Row => ({
+        key: `x-${i}-${e.date}`,
+        date: e.date,
+        text: e.text,
+        strategistAction: true,
+      }),
+    ),
+  ];
+
+  const lastUpdated = rows.length ? rows[rows.length - 1].date : "—";
 
   return (
     <section className="card ctx">
@@ -20,10 +49,15 @@ export function OngoingContext({
         </span>
       </div>
       <div className="ctx-body">
-        {shown.map((e) => (
-          <div className="ctx-row" key={e.date}>
+        {rows.map((e) => (
+          <div className="ctx-row" key={e.key}>
             <span className="ctx-date num">{e.date}</span>
-            <span className="ctx-text">{e.text}</span>
+            <span className="ctx-text">
+              {e.strategistAction && (
+                <span className="ctx-strategist-tag">Strategist · </span>
+              )}
+              {e.text}
+            </span>
           </div>
         ))}
       </div>

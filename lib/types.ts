@@ -34,6 +34,7 @@ export type OpenItem = {
   days: number;
   owner: string;
   level: "stale" | "critical" | "watch";
+  actionNote?: string;
 };
 
 export type Risk = {
@@ -41,6 +42,7 @@ export type Risk = {
   sev: "high" | "med";
   realized: boolean;
   note: string;
+  actionNote?: string;
 };
 
 export type ChecklistState = "done" | "active" | "blocked" | "todo";
@@ -115,6 +117,10 @@ export type Scenario = {
   accountStatus: AccountStatus;
   actions: Action[];
   recovered?: RecoveryOverride;
+  /** Set when ≥1 action approved in current session — drives the verbal label only, not the color. */
+  recovering?: boolean;
+  /** Per-approve log entries to append to the OngoingContext timeline. */
+  extraTimeline?: { date: string; text: string }[];
 };
 
 export type Account = {
