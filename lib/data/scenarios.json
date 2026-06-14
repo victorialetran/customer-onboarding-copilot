@@ -1,0 +1,119 @@
+{
+  "_comment": "Ingest file for the Onboarding Copilot prototype. base_artifacts is shared across all scenarios. Per scenario: artifact_text (base + cumulative comms) is what gets sent to Prompt 1 for extraction; the structured fields (dates, checklist_state, known_open_items) are what the scoring CODE uses so momentum math never depends on the LLM. Do NOT send the structured scoring fields or any analysis to the LLM as 'answers'.",
+
+  "base_artifacts": "=== SALES -> STRATEGIST HANDOFF NOTE (from Tom Reyes, AE, Jun 1) ===\nClosed Knix on a 28-day trial. Handing over.\nWho they are / why they bought: Knix is the leakproof/period-underwear leader (~600K IG). Inbound DM volume is huge and very question-heavy - sizing, absorbency, 'will this work postpartum / overnight / for swimming.' A lot is sensitive and people DM rather than comment publicly. Their social team can't keep up; median first response is ~14 hrs and high-intent buyers drop off waiting. Core motivation: respond faster to capture high-intent pre-purchase DMs without losing the careful, trusted voice their community expects.\nWhat sold them: the AI DM agent drafting fast, on-brand responses to repetitive pre-purchase questions, with their team staying in control. Priya (VP Brand & Social) is the champion.\nHeads up / open risks: I leaned into speed in the demo - told them we could have the agent drafting DM responses within the first few days of kickoff. Expectations on pace are high. Their Head of CX, Dani Rivera, was the skeptic in the room - protective of how sensitive customer messages get handled (period/postpartum/health-adjacent). I reassured her but we didn't really get into how the human-in-the-loop review or the sensitive-question guardrails work. Priya is slammed (also running a sub-brand push), so day-to-day will mostly be Marcus Lee, Senior Social Lead.\n\n=== TRIAL GOALS DOC (confirmed at kickoff, Jun 2) ===\nUse case: Nectar AI DM agent for inbound Instagram DMs (pre-purchase questions), human-in-the-loop - agent drafts, Knix team approves before send.\nTrial window: Jun 1 - Jun 28, 2026 (28 days). Target: onboarding complete & agent live in shadow mode by Jun 14, leaving the back half to demonstrate results.\nBaseline & targets: Median DM first-response time ~14 hrs -> under 2 hrs. % of pre-purchase DMs answered within 4 hrs ~40% -> over 90%.\nGuardrail (agreed): agent will never auto-send; sensitive/health-adjacent questions are always routed to a human.\n\n=== STAKEHOLDER & PRIORITIES NOTES (Jun 3) ===\nDecision maker / champion: Priya Anand - VP Brand & Social. High influence, low day-to-day availability (stretched across a sub-brand launch). Bought on ROI + brand-voice protection.\nDay-to-day owner: Marcus Lee - Senior Social Media Lead. High responsibility (does the actual work), medium influence. Enthusiastic, responsive early.\nSkeptic / can veto: Dani Rivera - Head of CX & Community. High influence. Owns tone & escalation. Wary that AI will mishandle sensitive postpartum/health-adjacent DMs. Alignment with her on tone + guardrails is a prerequisite to going live.\nRequired actor (access): Sam Park - Marketing Ops / MarTech. Low influence, but controls admin/IT access to the DM platform - a required hand to connect the integration.\nBrand priorities: (1) protect the trusted, careful brand voice in a sensitive category; (2) cut DM response time to capture high-intent buyers; (3) never mishandle sensitive customer questions - trust is the brand.\n\n=== NECTAR CAPABILITY ONE-PAGER ===\nDoes: monitors inbound Instagram DMs, classifies intent, drafts on-brand responses to common pre-purchase questions (sizing, absorbency, returns, product fit), routes them to the brand's team for approval before sending.\nNever: auto-sends; answers sensitive/health-adjacent questions autonomously (postpartum, medical, incontinence) - these are always escalated to a human per built-in guardrails.\nRequired inputs from customer to go live: (1) Instagram business profile connected; (2) DM platform admin access (requires admin/IT-level permissions); (3) brand voice & tone guidelines; (4) escalation rules.\nSetup time: ~2 days of configuration once access + guidelines are in hand.\n\n=== STRATEGIST PLAYBOOK EXCERPT (Nectar voice) ===\nVoice: warm, direct, partner-not-vendor. Proactive about unblocking. Concise. Never pushy, never robotic.\nPrinciples: Momentum is the job - surface blockers early and make the next step effortless for the customer. From Kaan (COO): 'For trust-sensitive brands, align on guardrails before you go live. We earn trust by never over-automating the sensitive stuff - that restraint is the product, not a limitation.' When a stakeholder is skeptical, address the concern head-on with specifics (how HITL and guardrails actually work), don't paper over it.\n\n=== ONBOARDING CHECKLIST (standard backbone) ===\n1. Sales -> Strategist handoff complete\n2. Kickoff call held\n3. Trial goals confirmed + baseline measured\n4. Stakeholders & roles mapped\n5. Brand priorities documented\n6. Customer connects accounts (Instagram profile + DM platform) - DM platform access is the gate\n7. Brand voice, tone & escalation rules captured - needs Dani\n8. Nectar completes technical configuration & agent tuning (depends on 6, 7)\n9. Human-in-the-loop review workflow set up (depends on 8)\n10. Agent live in shadow mode + first results reviewed (depends on 9)",
+
+  "scenarios": [
+    {
+      "id": "green",
+      "label": "Day 3 - Healthy",
+      "today": "2026-06-03",
+      "trial_start": "2026-06-01",
+      "trial_end": "2026-06-28",
+      "onboarding_target": "2026-06-14",
+      "trial_length_days": 28,
+      "onboarding_target_day": 14,
+      "current_day": 3,
+      "comms_text": "=== COMMS THREAD (through Jun 3) ===\nJun 2 - Kickoff call (notes): Strong session. Goals + baseline confirmed. Priya and Marcus engaged and positive. Strategist proactively invited Dani (Head of CX) and offered a dedicated session on tone + sensitive-question handling. Dani joined briefly and said she's comfortable for now - 'loop me in once we're closer to going live.' Deferred at her own choice.\nJun 3 - Marcus -> Strategist (email): 'Great kickoff! The team's genuinely excited to get this going. Tell me what you need from us first.'\nJun 3 - Strategist -> Marcus (email, sent): requested the two account connections (Instagram profile + DM platform access).",
+      "checklist_state": [
+        {"step": 1, "status": "done"},
+        {"step": 2, "status": "done"},
+        {"step": 3, "status": "done"},
+        {"step": 4, "status": "done"},
+        {"step": 5, "status": "done"},
+        {"step": 6, "status": "in_progress"},
+        {"step": 7, "status": "not_started"},
+        {"step": 8, "status": "not_started"},
+        {"step": 9, "status": "not_started"},
+        {"step": 10, "status": "not_started"}
+      ],
+      "last_meaningful_contact_date": "2026-06-03",
+      "known_open_items": [],
+      "high_severity_risk_realized": false,
+      "decision_maker_last_contact_date": "2026-06-02"
+    },
+    {
+      "id": "yellow",
+      "label": "Day 8 - Stalling",
+      "today": "2026-06-08",
+      "trial_start": "2026-06-01",
+      "trial_end": "2026-06-28",
+      "onboarding_target": "2026-06-14",
+      "trial_length_days": 28,
+      "onboarding_target_day": 14,
+      "current_day": 8,
+      "comms_text": "=== COMMS THREAD (through Jun 8, cumulative) ===\n[All Jun 2-3 comms from the Green scenario, plus:]\nJun 4 - Marcus -> Strategist (email): 'Instagram's connected. The DM platform needs admin access though - that's not me, I'll loop in Sam from our MarTech team.' (Marcus's last substantive reply.)\nJun 6 - Strategist -> Marcus (email): 'Thanks Marcus! Any luck getting Sam to set up the DM platform access? That's the one thing standing between us and configuring the agent.' (No reply.)\nJun 5-8: no response from Marcus or Sam.",
+      "checklist_state": [
+        {"step": 1, "status": "done"},
+        {"step": 2, "status": "done"},
+        {"step": 3, "status": "done"},
+        {"step": 4, "status": "done"},
+        {"step": 5, "status": "done"},
+        {"step": 6, "status": "blocked"},
+        {"step": 7, "status": "not_started"},
+        {"step": 8, "status": "not_started"},
+        {"step": 9, "status": "not_started"},
+        {"step": 10, "status": "not_started"}
+      ],
+      "last_meaningful_contact_date": "2026-06-04",
+      "known_open_items": [
+        {"item": "DM platform admin access", "asked_date": "2026-06-03", "owner": "Sam Park (via Marcus)", "critical_path": true, "status": "open"}
+      ],
+      "high_severity_risk_realized": false,
+      "decision_maker_last_contact_date": "2026-06-02"
+    },
+    {
+      "id": "red",
+      "label": "Day 11 - At risk (3 days of runway)",
+      "today": "2026-06-11",
+      "trial_start": "2026-06-01",
+      "trial_end": "2026-06-28",
+      "onboarding_target": "2026-06-14",
+      "trial_length_days": 28,
+      "onboarding_target_day": 14,
+      "current_day": 11,
+      "comms_text": "=== COMMS THREAD (through Jun 11, cumulative) ===\n[All Jun 2-8 comms from the Yellow scenario, plus:]\nJun 10 - Strategist -> Marcus & Priya (email): 'Flagging a timeline risk - we still need DM platform access (waiting on Sam) to stay on track for going live by the 14th. Can we unblock this in the next day or two?'\nJun 11 - Dani Rivera -> Strategist (email, cc Priya): 'Stepping in here - I held off earlier thinking I'd raise this closer to go-live, but the more I sit with it, the more it matters. We were told this agent would be handling our DMs within days, but I still don't understand how it handles sensitive customer questions - postpartum, medical-adjacent, the messages that matter most to our community. I'm not comfortable connecting our DM platform until we've worked through that, and honestly I'm not sure this is the right fit if it can't handle those carefully.' (Negative; self-initiated late escalation - the sales over-sell surfaces.)\nPriya has not replied since kickoff.",
+      "checklist_state": [
+        {"step": 1, "status": "done"},
+        {"step": 2, "status": "done"},
+        {"step": 3, "status": "done"},
+        {"step": 4, "status": "done"},
+        {"step": 5, "status": "done"},
+        {"step": 6, "status": "blocked"},
+        {"step": 7, "status": "at_risk"},
+        {"step": 8, "status": "not_started"},
+        {"step": 9, "status": "not_started"},
+        {"step": 10, "status": "not_started"}
+      ],
+      "last_meaningful_contact_date": "2026-06-11",
+      "last_contact_sentiment": "negative",
+      "known_open_items": [
+        {"item": "DM platform admin access", "asked_date": "2026-06-03", "owner": "Sam Park (via Marcus)", "critical_path": true, "status": "open"}
+      ],
+      "high_severity_risk_realized": true,
+      "decision_maker_last_contact_date": "2026-06-02"
+    }
+  ],
+
+  "scoring_rules": {
+    "_comment": "Run in code, not by the LLM. Worst signal wins; high_severity_risk_realized forces red.",
+    "pacing_gap": {
+      "formula": "checklist_pct_complete - (current_day / onboarding_target_day * 100)",
+      "green": ">= 0",
+      "yellow": "-20 to < 0",
+      "red": "< -20"
+    },
+    "days_since_last_contact": { "green": "<= 3", "yellow": "4 to 7", "red": "> 7" },
+    "stale_blockers": {
+      "_def": "open critical-path items whose asked_date is > 3 days before today",
+      "green": "0 to 1", "yellow": "2", "red": ">= 3"
+    },
+    "sentiment_risk": {
+      "green": "flat-positive, no realized high-sev risk",
+      "yellow": "declining tone",
+      "red": "strong explicit negative"
+    },
+    "override": "high_severity_risk_realized == true => RED regardless. Also flag decision_maker silent > 7 days as a risk contributor.",
+    "overall": "worst of the four signals (plus override)"
+  }
+}
