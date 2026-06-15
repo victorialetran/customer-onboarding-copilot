@@ -33,12 +33,7 @@ import {
 } from "@/lib/scenarioData";
 import { baseArtifacts, scenarioCommsText } from "@/lib/scenarios";
 import type { MomentumStatus, ScenarioStructured } from "@/lib/scoring";
-import type {
-  ActionState,
-  Scenario,
-  ScenarioId,
-  SignalKey,
-} from "@/lib/types";
+import type { ActionState, Scenario, ScenarioId } from "@/lib/types";
 
 const PRESET_TO_SCORING: Record<ScenarioId, "green" | "yellow" | "red"> = {
   day3: "green",
@@ -60,6 +55,38 @@ type LiveState = {
   rawDrafts: string | null;
 };
 
+// Per-scenario session state. Caching this on a Record<ScenarioId, ...> keyed
+// map means switching tabs preserves whatever the strategist had going on in
+// each scenario (textarea edits, live extraction, approvals). Only re-running
+// extraction on a scenario or reloading the page clears its slot.
+type PerScenarioState = {
+  inputText: string;
+  liveState: LiveState | null;
+  actionStates: Record<string, ActionState>;
+  approvedIds: string[];
+  phase: RunPhase;
+  error: string | null;
+};
+
+function freshScenarioState(id: ScenarioId): PerScenarioState {
+  return {
+    inputText: presetText(id),
+    liveState: null,
+    actionStates: {},
+    approvedIds: [],
+    phase: "idle",
+    error: null,
+  };
+}
+
+function freshAllScenarios(): Record<ScenarioId, PerScenarioState> {
+  return {
+    day3: freshScenarioState("day3"),
+    day8: freshScenarioState("day8"),
+    day11: freshScenarioState("day11"),
+  };
+}
+
 type ApiResponse =
   | { ok: true; text: string }
   | { ok: false; error: string };
@@ -75,33 +102,42 @@ function parseStrictJson<T>(text: string): T {
 
 export default function Page() {
   const [scenarioId, setScenarioId] = useState<ScenarioId>("day3");
-  const [inputText, setInputText] = useState<string>(() => presetText("day3"));
-  const [liveState, setLiveState] = useState<LiveState | null>(null);
-  const [actionStates, setActionStates] = useState<Record<string, ActionState>>(
-    {},
-  );
-  // Ordered list of action ids the strategist has approved this session.
-  // Reducing applyApprovedAction over it produces the up-to-date snap.
-  const [approvedIds, setApprovedIds] = useState<string[]>([]);
+  const [perScenario, setPerScenario] = useState<
+    Record<ScenarioId, PerScenarioState>
+  >(() => freshAllScenarios());
+  // Animation state — short-lived, session-global is fine.
   const [leavingId, setLeavingId] = useState<string | null>(null);
-  const [flipKeys, setFlipKeys] = useState<SignalKey[]>([]);
-  const [phase, setPhase] = useState<RunPhase>("idle");
-  const [error, setError] = useState<string | null>(null);
+  const [flipKeys, setFlipKeys] = useState<("lastContact")[]>([]);
+
+  const cur = perScenario[scenarioId];
+
+  // Patch a specific scenario's slot. Used by run handlers that snapshot the
+  // scenarioId at call time so a slow extraction can't pollute the wrong tab
+  // if the user switches mid-flight.
+  const patchScenario = useCallback(
+    (id: ScenarioId, patch: Partial<PerScenarioState>) =>
+      setPerScenario((s) => ({ ...s, [id]: { ...s[id], ...patch } })),
+    [],
+  );
+
+  // Patch the currently-viewed scenario's slot. Used by approve/dismiss/etc.
+  const patchCur = useCallback(
+    (patch: Partial<PerScenarioState>) => patchScenario(scenarioId, patch),
+    [patchScenario, scenarioId],
+  );
 
   // Snap = the Scenario the UI components render against. The dot color always
   // reflects the deterministic scorer; "Recovering" is just a verbal label.
   const snap: Scenario = useMemo(() => {
+    const { liveState, approvedIds } = cur;
+
     if (liveState) {
       const base = liveState.profile;
-      // Resolve which actions were approved (need the action objects to know
-      // their addresses + type for per-action effect + timeline entries).
       const approvedActions = approvedIds
         .map((id) => liveState.scenario.actions.find((a) => a.id === id))
         .filter((a): a is NonNullable<typeof a> => a !== undefined);
 
-      if (approvedActions.length === 0) {
-        return liveState.scenario;
-      }
+      if (approvedActions.length === 0) return liveState.scenario;
 
       const appliedProfile = approvedActions.reduce(
         (acc, a) => applyApprovedAction(acc, a),
@@ -116,8 +152,7 @@ export default function Page() {
       }).scenario;
     }
 
-    // Static fallback path. The honest day8.recovered override fires when ≥1
-    // action has been approved on the static day8 preset.
+    // Static fallback path.
     const baseStatic = SCENARIOS[scenarioId];
     if (approvedIds.length === 0) return baseStatic;
 
@@ -126,7 +161,7 @@ export default function Page() {
         .map((id) => baseStatic.actions.find((a) => a.id === id))
         .filter((a): a is NonNullable<typeof a> => a !== undefined);
       const extraTimeline = approvedActions.map((a) => ({
-        date: baseStatic.accountStatus.lastContact, // best static stand-in for "today"
+        date: baseStatic.accountStatus.lastContact,
         text: `Strategist sent: ${a.type}. Awaiting response.`,
       }));
       return {
@@ -148,9 +183,6 @@ export default function Page() {
       };
     }
 
-    // Day 3 / Day 11 static — no per-action override designed, but still
-    // surface a verbal "Recovering" label and a timeline entry. Color stays
-    // wherever the scenario natively sat.
     const approvedActions = approvedIds
       .map((id) => baseStatic.actions.find((a) => a.id === id))
       .filter((a): a is NonNullable<typeof a> => a !== undefined);
@@ -163,45 +195,44 @@ export default function Page() {
         text: `Strategist sent: ${a.type}. Awaiting response.`,
       })),
     };
-  }, [liveState, approvedIds, scenarioId]);
+  }, [cur, scenarioId]);
 
+  // Switching tabs is a pure setScenarioId — no clearing. Each scenario keeps
+  // whatever it was doing (live extraction, edits, approvals).
   const pickPreset = useCallback((id: ScenarioId) => {
     setScenarioId(id);
-    setInputText(presetText(id));
-    setLiveState(null);
-    setActionStates({});
-    setApprovedIds([]);
     setLeavingId(null);
     setFlipKeys([]);
-    setPhase("idle");
-    setError(null);
   }, []);
 
+  const setInputText = useCallback(
+    (text: string) => patchCur({ inputText: text }),
+    [patchCur],
+  );
+
+  // "Reset to preset" wipes ONLY the currently-viewed scenario's slot.
   const resetToPreset = useCallback(() => {
-    setInputText(presetText(scenarioId));
-    setLiveState(null);
-    setActionStates({});
-    setApprovedIds([]);
+    patchCur(freshScenarioState(scenarioId));
     setLeavingId(null);
     setFlipKeys([]);
-    setPhase("idle");
-    setError(null);
-  }, [scenarioId]);
+  }, [patchCur, scenarioId]);
 
   const runExtraction = useCallback(async () => {
-    setPhase("extracting");
-    setError(null);
+    // Snapshot the scenario id at click-time so the promise resolution lands
+    // on the scenario the user clicked Run from, even if they switch tabs.
+    const id = scenarioId;
+    const text = perScenario[id].inputText;
+
+    patchScenario(id, { phase: "extracting", error: null });
     try {
-      // Stage 1 — extract
       const extractRes = await fetch("/api/llm", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ mode: "extract", artifactText: inputText }),
+        body: JSON.stringify({ mode: "extract", artifactText: text }),
       });
       const extractData = (await extractRes.json()) as ApiResponse;
       if (!extractData.ok) {
-        setError(extractData.error);
-        setPhase("error");
+        patchScenario(id, { phase: "error", error: extractData.error });
         return;
       }
       let profile: ExtractedProfile;
@@ -210,23 +241,22 @@ export default function Page() {
         profile = parseStrictJson<ExtractedProfile>(extractData.text);
         rawExtraction = JSON.stringify(profile, null, 2);
       } catch (e) {
-        setError(
-          "Extraction returned malformed JSON — try Run again. " +
+        patchScenario(id, {
+          phase: "error",
+          error:
+            "Extraction returned malformed JSON — try Run again. " +
             (e instanceof Error ? `(${e.message})` : ""),
-        );
-        setPhase("error");
+        });
         return;
       }
 
-      // Stage 2 — score (pure, no API)
       const { scenario: extractedScenario, momentum, structured } =
         extractedToScenario(profile, [], {});
 
-      // Stage 3 — draft (only if not green)
       let drafts: DraftedAction[] = [];
       let rawDrafts: string | null = null;
       if (momentum.overall !== "green") {
-        setPhase("drafting");
+        patchScenario(id, { phase: "drafting" });
         const stallReasons = deriveStallReasons(momentum, profile);
         const draftRes = await fetch("/api/llm", {
           method: "POST",
@@ -240,22 +270,22 @@ export default function Page() {
         });
         const draftData = (await draftRes.json()) as ApiResponse;
         if (!draftData.ok) {
-          setError(
-            "Extraction succeeded but drafting failed: " + draftData.error,
-          );
-          // Render with the extracted profile + no drafts.
-          setLiveState({
-            profile,
-            scenario: extractedScenario,
-            momentum,
-            structured,
-            drafts: [],
-            rawExtraction,
-            rawDrafts: null,
+          patchScenario(id, {
+            phase: "error",
+            error:
+              "Extraction succeeded but drafting failed: " + draftData.error,
+            liveState: {
+              profile,
+              scenario: extractedScenario,
+              momentum,
+              structured,
+              drafts: [],
+              rawExtraction,
+              rawDrafts: null,
+            },
+            actionStates: {},
+            approvedIds: [],
           });
-          setActionStates({});
-          setApprovedIds([]);
-          setPhase("error");
           return;
         }
         try {
@@ -263,76 +293,71 @@ export default function Page() {
           drafts = Array.isArray(parsed.drafts) ? parsed.drafts : [];
           rawDrafts = JSON.stringify(parsed, null, 2);
         } catch (e) {
-          setError(
-            "Drafts returned malformed JSON; dashboard rendered without actions. " +
+          patchScenario(id, {
+            phase: "error",
+            error:
+              "Drafts returned malformed JSON; dashboard rendered without actions. " +
               (e instanceof Error ? `(${e.message})` : ""),
-          );
-          setLiveState({
-            profile,
-            scenario: extractedScenario,
-            momentum,
-            structured,
-            drafts: [],
-            rawExtraction,
-            rawDrafts: draftData.text,
+            liveState: {
+              profile,
+              scenario: extractedScenario,
+              momentum,
+              structured,
+              drafts: [],
+              rawExtraction,
+              rawDrafts: draftData.text,
+            },
+            actionStates: {},
+            approvedIds: [],
           });
-          setActionStates({});
-          setApprovedIds([]);
-          setPhase("error");
           return;
         }
       }
 
-      // Final live state — rebuild scenario WITH drafts now stamped on it.
       const final = extractedToScenario(profile, drafts, {});
-      setLiveState({
-        profile,
-        scenario: final.scenario,
-        momentum: final.momentum,
-        structured: final.structured,
-        drafts,
-        rawExtraction,
-        rawDrafts,
+      patchScenario(id, {
+        phase: "done",
+        error: null,
+        liveState: {
+          profile,
+          scenario: final.scenario,
+          momentum: final.momentum,
+          structured: final.structured,
+          drafts,
+          rawExtraction,
+          rawDrafts,
+        },
+        actionStates: {},
+        approvedIds: [],
       });
-      setActionStates({});
-      setApprovedIds([]);
-      setLeavingId(null);
-      setFlipKeys([]);
-      setPhase("done");
     } catch (e) {
-      setError(
-        "Network error calling /api/llm. " +
+      patchScenario(id, {
+        phase: "error",
+        error:
+          "Network error calling /api/llm. " +
           (e instanceof Error ? e.message : ""),
-      );
-      setPhase("error");
+      });
     }
-  }, [inputText]);
+  }, [scenarioId, perScenario, patchScenario]);
 
-  // Per-action state keyed by scenario (so switching presets clears action state).
-  const sKey = (id: string) => `${liveState ? "live" : scenarioId}:${id}`;
   const stateOf = (id: string): ActionState =>
-    actionStates[sKey(id)] || "pending";
+    cur.actionStates[id] || "pending";
 
-  const setActionState = (id: string, val: ActionState) =>
-    setActionStates((m) => ({ ...m, [sKey(id)]: val }));
+  const setActionState = (actionId: string, val: ActionState) =>
+    patchCur({ actionStates: { ...cur.actionStates, [actionId]: val } });
 
-  const approve = (id: string) => {
-    setLeavingId(id);
-    // Snapshot the current per-signal colors BEFORE the approval lands so we
-    // can flash only the signals whose color genuinely changes.
+  const approve = (actionId: string) => {
+    setLeavingId(actionId);
     const before = { ...snap.signals };
     setTimeout(() => {
-      setActionState(id, "approved");
-      setApprovedIds((ids) => (ids.includes(id) ? ids : [...ids, id]));
+      patchCur({
+        actionStates: { ...cur.actionStates, [actionId]: "approved" },
+        approvedIds: cur.approvedIds.includes(actionId)
+          ? cur.approvedIds
+          : [...cur.approvedIds, actionId],
+      });
       setLeavingId(null);
-      // Defer flash computation by a microtask so React has the updated snap.
       requestAnimationFrame(() => {
-        // We can't synchronously read the post-update snap inside this closure
-        // (state updates haven't committed), so we approximate the diff: the
-        // baseline effect always refreshes lastContact to today, which means
-        // the lastContact signal is the only one that can move green-ward from
-        // a single approve. Anything else stays the same. This is honest given
-        // the per-action effect model.
         const lastContactWasNonGreen = before.lastContact.level !== "green";
         if (lastContactWasNonGreen) {
           setFlipKeys(["lastContact"]);
@@ -344,24 +369,21 @@ export default function Page() {
     }, 430);
   };
 
-  const edit = (id: string) => setActionState(id, "editing");
-  const cancelEdit = (id: string) => setActionState(id, "pending");
-  const saveEdit = (id: string) => approve(id);
-  const dismiss = (id: string) => setActionState(id, "dismissed");
-  const undo = (id: string) => {
-    setActionState(id, "pending");
-    setApprovedIds((ids) => ids.filter((x) => x !== id));
-  };
+  const edit = (actionId: string) => setActionState(actionId, "editing");
+  const cancelEdit = (actionId: string) => setActionState(actionId, "pending");
+  const saveEdit = (actionId: string) => approve(actionId);
+  const dismiss = (actionId: string) => setActionState(actionId, "dismissed");
+  const undo = (actionId: string) =>
+    patchCur({
+      actionStates: { ...cur.actionStates, [actionId]: "pending" },
+      approvedIds: cur.approvedIds.filter((x) => x !== actionId),
+    });
 
   const handlers = { approve, edit, cancelEdit, saveEdit, dismiss, undo };
 
-  // The queue source: live drafts (when live) or the static scenario's actions.
-  // We hand the queue the snap's actions so the count + render reflect the
-  // current state (including any recovery transition).
-  const queueScenario: Scenario = useMemo(() => {
-    if (liveState) return liveState.scenario;
-    return SCENARIOS[scenarioId];
-  }, [liveState, scenarioId]);
+  const queueScenario: Scenario = cur.liveState
+    ? cur.liveState.scenario
+    : SCENARIOS[scenarioId];
 
   const scopedStates: Record<string, ActionState> = {};
   queueScenario.actions.forEach((a) => {
@@ -383,15 +405,15 @@ export default function Page() {
           scenarios={SCENARIOS}
           activePreset={scenarioId}
           onPickPreset={pickPreset}
-          inputText={inputText}
+          inputText={cur.inputText}
           onInputChange={setInputText}
-          phase={phase}
-          error={error}
-          hasLive={liveState !== null}
+          phase={cur.phase}
+          error={cur.error}
+          hasLive={cur.liveState !== null}
           onRun={runExtraction}
           onReset={resetToPreset}
-          rawExtraction={liveState?.rawExtraction ?? null}
-          rawDrafts={liveState?.rawDrafts ?? null}
+          rawExtraction={cur.liveState?.rawExtraction ?? null}
+          rawDrafts={cur.liveState?.rawDrafts ?? null}
         />
 
         <AccountHeader account={ACCOUNT} snap={snap} />
