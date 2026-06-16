@@ -7,6 +7,26 @@ export function OngoingContext({
   snap: Scenario;
   timeline: TimelineEntry[];
 }) {
+  if (snap.placeholder) {
+    return (
+      <section className="card ctx">
+        <div className="panel-head">
+          <span className="panel-title">Ongoing context</span>
+          <span className="eyebrow">
+            Last updated <span className="num">—</span>
+          </span>
+        </div>
+        <div className="ctx-body">
+          <div className="ctx-row">
+            <span className="ctx-date num">—</span>
+            <span className="ctx-text" style={{ color: "var(--ink-3)" }}>
+              No entries yet · run extraction to load the timeline.
+            </span>
+          </div>
+        </div>
+      </section>
+    );
+  }
   const day = snap.day || 0;
   const base = timeline.filter((e) => e.day <= day);
   const extras = snap.extraTimeline ?? [];

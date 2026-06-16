@@ -91,12 +91,16 @@ function ActionCard({
   leaving,
   first,
   handlers,
+  disabled,
+  disabledReason,
 }: {
   action: Action;
   state: ActionState;
   leaving: boolean;
   first: boolean;
   handlers: ActionHandlers;
+  disabled?: boolean;
+  disabledReason?: string;
 }) {
   const initialOpen = first || action.priority === "high";
   const [open, setOpen] = useState(initialOpen);
@@ -202,6 +206,8 @@ function ActionCard({
               type="button"
               className="btn btn-primary"
               onClick={() => handlers.approve(action.id)}
+              disabled={disabled}
+              title={disabled ? disabledReason : undefined}
             >
               <Icons.check /> Approve
             </button>
@@ -209,6 +215,8 @@ function ActionCard({
               type="button"
               className="btn btn-ghost"
               onClick={() => handlers.edit(action.id)}
+              disabled={disabled}
+              title={disabled ? disabledReason : undefined}
             >
               <Icons.pencil /> Edit
             </button>
@@ -216,6 +224,8 @@ function ActionCard({
               type="button"
               className="btn btn-quiet"
               onClick={() => handlers.dismiss(action.id)}
+              disabled={disabled}
+              title={disabled ? disabledReason : undefined}
             >
               <Icons.x /> Dismiss
             </button>
@@ -254,6 +264,8 @@ type QueueProps = {
 };
 
 export function ActionQueue({ snap, states, leavingId, handlers }: QueueProps) {
+  const isStale = !!snap.staleSnapshot;
+  const isPlaceholder = !!snap.placeholder;
   const pending = snap.actions.filter(
     (a) => (states[a.id] || "pending") !== "approved",
   );
@@ -274,7 +286,9 @@ export function ActionQueue({ snap, states, leavingId, handlers }: QueueProps) {
             <span className="queue-count num">{liveCount}</span>
           )}
         </span>
-        <span className="eyebrow">Approve to act</span>
+        <span className="eyebrow">
+          {isStale ? "Refresh to act" : "Approve to act"}
+        </span>
       </div>
 
       {pending.length === 0 ? (
@@ -282,10 +296,13 @@ export function ActionQueue({ snap, states, leavingId, handlers }: QueueProps) {
           <span className="ring">
             <Icons.check />
           </span>
-          <div className="queue-empty-title">No actions needed</div>
+          <div className="queue-empty-title">
+            {isPlaceholder ? "No actions yet" : "No actions needed"}
+          </div>
           <div className="queue-empty-sub">
-            Everything&rsquo;s on track. The Copilot will surface a draft the
-            moment momentum dips.
+            {isPlaceholder
+              ? "Run live extraction to load today's actions."
+              : "Everything's on track. The Copilot will surface a draft the moment momentum dips."}
           </div>
         </div>
       ) : (
@@ -298,6 +315,8 @@ export function ActionQueue({ snap, states, leavingId, handlers }: QueueProps) {
               leaving={leavingId === a.id}
               first={i === 0}
               handlers={handlers}
+              disabled={isStale}
+              disabledReason={isStale ? "Refresh snapshot first" : undefined}
             />
           ))}
         </div>

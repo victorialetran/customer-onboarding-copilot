@@ -51,7 +51,12 @@ export const CHECKLIST_ITEMS: string[] = [
   "Agent live in shadow mode + first results reviewed",
 ];
 
-const day3: Scenario = {
+// Note: the static fallbacks for Day 8 and Day 11 deliberately reuse the
+// previous day's snapshot, so clicking Run reveals "today's reality" as a
+// before/after. day3Snapshot is what surfaces as the Day 8 pre-Run fallback;
+// day8Snapshot becomes the Day 11 pre-Run fallback. The actual live state for
+// each day is produced by the extraction pipeline against lib/data/scenarios.json.
+const day3Snapshot: Scenario = {
   key: "day3",
   tab: "Day 3",
   tabSub: "Healthy",
@@ -109,7 +114,7 @@ const day3: Scenario = {
   ],
 };
 
-const day8: Scenario = {
+const day8Snapshot: Scenario = {
   key: "day8",
   tab: "Day 8",
   tabSub: "Stalling",
@@ -213,91 +218,61 @@ const day8: Scenario = {
   },
 };
 
-const day11: Scenario = {
+// Day 3 cold-start placeholder. Layout intact but every field reads as `—`
+// in the UI. Clicking Run replaces this with the live-extracted Day 3 snapshot.
+const day3Placeholder: Scenario = {
+  key: "day3",
+  tab: "Day 3",
+  tabSub: "Healthy",
+  status: "green",
+  label: "—",
+  day: 3,
+  headline: "No live snapshot yet.",
+  sub: "Click 'Run live extraction' above to load the Day 3 snapshot.",
+  pace: { checklistPct: 0, elapsedPct: 0, dayLabel: "Day 3 of 14", note: "—" },
+  trial: { elapsedPct: 11, daysLeft: 25 },
+  signals: {
+    pace:        { level: "green", why: "—" },
+    lastContact: { level: "green", why: "—" },
+    blockers:    { level: "green", why: "—" },
+    sentiment:   { level: "green", why: "—" },
+  },
+  who: [],
+  goals: [],
+  openItems: [],
+  risks: [],
+  checklist: Array.from({ length: 10 }, () => ({ state: "todo" as const })),
+  accountStatus: {
+    lastContact: "—",
+    summary: "—",
+    whatsNext: "—",
+  },
+  actions: [],
+  placeholder: true,
+};
+
+// Day 8 pre-Run fallback: Day 3's snapshot with Day 8 tab metadata + stale flag.
+const day8StaleFallback: Scenario = {
+  ...day3Snapshot,
+  key: "day8",
+  tab: "Day 8",
+  tabSub: "Stalling",
+  staleSnapshot: { snapshotDate: "2026-06-03" },
+};
+
+// Day 11 pre-Run fallback: Day 8's snapshot with Day 11 tab metadata + stale flag.
+const day11StaleFallback: Scenario = {
+  ...day8Snapshot,
   key: "day11",
   tab: "Day 11",
   tabSub: "At Risk",
-  status: "red",
-  label: "At risk",
-  day: 11,
-  headline: "Will miss Jun-14 target in 3 days unless we act.",
-  sub: "Access never cleared, a sales over-promise has surfaced, and the decision maker has gone silent.",
-  pace: { checklistPct: 50, elapsedPct: 79, dayLabel: "Day 11 of 14", note: "Behind by 29 pts" },
-  trial: { elapsedPct: 39, daysLeft: 17 },
-  signals: {
-    pace:        { level: "red", why: "Behind by 29 points" },
-    lastContact: { level: "red", why: "Priya silent for 9 days" },
-    blockers:    { level: "red", why: "DM access stuck 8 days" },
-    sentiment:   { level: "red", why: "Negative — frustration surfacing" },
-  },
-  who: [
-    { name: "Priya Anand", role: "Decision maker · VP CX", eng: "silent — flagged", tone: "bad", flag: true },
-    { name: "Marcus Lee", role: "Lead · day-to-day owner", eng: "disengaged", tone: "bad" },
-    { name: "Dani Rao", role: "Solutions sponsor · our side", eng: "needs brief", tone: "neutral" },
-  ],
-  goals: [
-    { label: "Auto-resolved DM rate", current: "35%", target: "60%", note: "still sandbox — never went live" },
-    { label: "Median first reply", current: "11min", target: "<2 min", note: "blocked from production" },
-  ],
-  openItems: [
-    { name: "Instagram DM platform access", days: 8, owner: "Sam Park — unowned in practice", level: "critical" },
-  ],
-  risks: [
-    { name: "Sales over-sell — sensitive-DM handling", sev: "high", realized: true, note: "Promised guardrails the product doesn't ship yet" },
-    { name: "Decision-maker disengagement", sev: "high", realized: true, note: "Priya silent 9 days — deal sponsor at risk" },
-  ],
-  checklist: [
-    { state: "done" },
-    { state: "done" },
-    { state: "done" },
-    { state: "done" },
-    { state: "done" },
-    { state: "blocked", note: "Access never cleared — stalled 8 days" },
-    { state: "todo", note: "Needs Dani — blocked by guardrail reset" },
-    { state: "todo" },
-    { state: "todo" },
-    { state: "todo" },
-  ],
-  accountStatus: {
-    lastContact: "2026-06-04",
-    summary: "Access never cleared and a sales over-promise on sensitive-DM guardrails has surfaced. Priya has gone silent, Marcus disengaged, and there are 3 days to the Jun 14 target.",
-    whatsNext: "Reframe honestly with Dani on what we can commit to, send Priya an escalation recap, and make a final direct ask to Sam on DM access.",
-  },
-  actions: [
-    {
-      id: "d11-dani",
-      priority: "high",
-      type: "Reframe to Dani — sensitive-DM guardrails",
-      trigger: "High-severity risk realized",
-      addresses: { kind: "risk", label: "Sales over-sell — sensitive-DM handling" },
-      channel: { via: "slack", to: "#knix-pod · internal team" },
-      draft: "Dani — need your read before this slips. Knix was sold on sensitive-DM guardrails we don't ship today, and it's now the reason Priya's gone quiet. Can we align on what we can honestly commit to this week vs. roadmap, so I can reset expectations without over-promising again? 15 min today?",
-    },
-    {
-      id: "d11-priya",
-      priority: "high",
-      type: "Escalation recap to Priya",
-      trigger: "Decision maker silent 9 days",
-      addresses: { kind: "risk", label: "Decision-maker disengagement" },
-      channel: { via: "email", to: "Priya Anand · priya@knix.com", cc: "Marcus Lee · marcus@knix.com", subject: "Knix onboarding — recovery plan & what I need" },
-      draft: "Hi Priya — straight with you: we're 3 days from the Jun 14 target and not where either of us wanted to be. Two things stalled us — DM access never cleared, and we over-indexed on guardrails I'm now getting clarity on internally. Here's the honest plan to recover, and what I need from your side. Can we talk tomorrow?",
-    },
-    {
-      id: "d11-sam",
-      priority: "low",
-      type: "Final nudge to Sam on DM access",
-      trigger: "Blocker stale 8 days",
-      addresses: { kind: "blocker", label: "Instagram DM platform access" },
-      channel: { via: "email", to: "Sam Park · sam@knix.com", cc: "Marcus Lee · marcus@knix.com", subject: "Final ask: Instagram DM permission" },
-      draft: "Hi Sam — last ask on the Instagram DM permission. This single approval is blocking go-live. If there's an approver above you I should loop in, point me there and I'll take it off your plate.",
-    },
-  ],
+  staleSnapshot: { snapshotDate: "2026-06-08" },
 };
 
 export const SCENARIOS: Record<ScenarioId, Scenario> = {
-  day3,
-  day8,
-  day11,
+  day3: day3Placeholder,
+  day8: day8StaleFallback,
+  day11: day11StaleFallback,
 };
 
 export const SCENARIO_ORDER: ScenarioId[] = ["day3", "day8", "day11"];

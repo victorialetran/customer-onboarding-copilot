@@ -58,6 +58,8 @@ export function CustomerProfile({
   snap: Scenario;
   account: Account;
 }) {
+  const isPlaceholder = !!snap.placeholder;
+  const dash = <div className="empty-soft">—</div>;
   return (
     <section className="card profile-wide">
       <div className="panel-head">
@@ -68,22 +70,22 @@ export function CustomerProfile({
         <div className="pf-col">
           <div className="pf-section">
             <div className="eyebrow pf-label">Who</div>
-            {snap.who.map((p) => (
-              <WhoRow key={p.name} p={p} />
-            ))}
+            {isPlaceholder || snap.who.length === 0
+              ? dash
+              : snap.who.map((p) => <WhoRow key={p.name} p={p} />)}
           </div>
         </div>
 
         <div className="pf-col">
           <div className="pf-section">
             <div className="eyebrow pf-label">What was promised</div>
-            <PfBullets items={account.promised} />
+            {isPlaceholder ? dash : <PfBullets items={account.promised} />}
           </div>
           <div className="pf-section">
             <div className="eyebrow pf-label">
               What the customer cares about
             </div>
-            <PfBullets items={account.caresAbout} />
+            {isPlaceholder ? dash : <PfBullets items={account.caresAbout} />}
           </div>
         </div>
 
@@ -91,9 +93,9 @@ export function CustomerProfile({
           <div className="pf-section">
             <div className="eyebrow pf-label">Goals &amp; baseline</div>
             <div className="goals">
-              {snap.goals.map((g) => (
-                <Goal key={g.label} g={g} />
-              ))}
+              {isPlaceholder || snap.goals.length === 0
+                ? dash
+                : snap.goals.map((g) => <Goal key={g.label} g={g} />)}
             </div>
           </div>
         </div>

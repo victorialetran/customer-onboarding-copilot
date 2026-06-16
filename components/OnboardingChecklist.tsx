@@ -15,11 +15,24 @@ function CkRow({
   it,
   i,
   label,
+  placeholder,
 }: {
   it: ChecklistEntry;
   i: number;
   label: string;
+  placeholder?: boolean;
 }) {
+  if (placeholder) {
+    return (
+      <div className="ck-row placeholder" data-state="placeholder">
+        <span className="ck-num num">{i + 1}</span>
+        <div className="ck-main">
+          <div className="ck-label">{label}</div>
+        </div>
+        <span className="ck-pill ck-placeholder">—</span>
+      </div>
+    );
+  }
   return (
     <div className="ck-row" data-state={it.state}>
       <span className="ck-num num">{i + 1}</span>
@@ -45,6 +58,7 @@ export function OnboardingChecklist({
   items: string[];
 }) {
   const [open, setOpen] = useState(false);
+  const isPlaceholder = !!snap.placeholder;
   const list = snap.checklist;
   const done = list.filter((i) => i.state === "done").length;
   const total = list.length;
@@ -66,8 +80,14 @@ export function OnboardingChecklist({
         <span className="panel-title">Onboarding checklist</span>
         <span className="ck-head-right">
           <span className="ck-counter">
-            <span className="num">{done}</span> of{" "}
-            <span className="num">{total}</span> complete
+            {isPlaceholder ? (
+              <>—</>
+            ) : (
+              <>
+                <span className="num">{done}</span> of{" "}
+                <span className="num">{total}</span> complete
+              </>
+            )}
           </span>
           <span className={"ck-chevron" + (open ? " open" : "")}>
             <Icons.chevron />
@@ -76,50 +96,105 @@ export function OnboardingChecklist({
       </button>
 
       <div className="ck-meter" aria-hidden="true">
-        <div className="ck-meter-fill" style={{ width: pct + "%" }} />
+        <div
+          className="ck-meter-fill"
+          style={{ width: (isPlaceholder ? 0 : pct) + "%" }}
+        />
       </div>
 
       <div className="checklist">
-        {!open && (
+        {isPlaceholder ? (
           <>
-            {current ? (
-              <div className="ck-preview">
-                <div className="eyebrow ck-current-label">Current step</div>
-                <CkRow it={current} i={curIdx} label={items[curIdx]} />
-              </div>
+            {!open ? (
+              <>
+                <div className="ck-preview">
+                  <div className="eyebrow ck-current-label">Current step</div>
+                  <CkRow
+                    it={list[0]}
+                    i={0}
+                    label={items[0]}
+                    placeholder
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="ck-expand"
+                  onClick={() => setOpen(true)}
+                >
+                  Show all {total} steps{" "}
+                  <span className="ck-ex-chev">
+                    <Icons.chevron />
+                  </span>
+                </button>
+              </>
             ) : (
-              <div className="ck-alldone">
-                All steps complete — agent is live.
-              </div>
+              <>
+                {list.map((it, i) => (
+                  <CkRow
+                    key={i}
+                    it={it}
+                    i={i}
+                    label={items[i]}
+                    placeholder
+                  />
+                ))}
+                <button
+                  type="button"
+                  className="ck-expand"
+                  onClick={() => setOpen(false)}
+                >
+                  Show less{" "}
+                  <span className="ck-ex-chev open">
+                    <Icons.chevron />
+                  </span>
+                </button>
+              </>
             )}
-            <button
-              type="button"
-              className="ck-expand"
-              onClick={() => setOpen(true)}
-            >
-              Show all {total} steps{" "}
-              <span className="ck-ex-chev">
-                <Icons.chevron />
-              </span>
-            </button>
           </>
-        )}
-
-        {open && (
+        ) : (
           <>
-            {list.map((it, i) => (
-              <CkRow key={i} it={it} i={i} label={items[i]} />
-            ))}
-            <button
-              type="button"
-              className="ck-expand"
-              onClick={() => setOpen(false)}
-            >
-              Show less{" "}
-              <span className="ck-ex-chev open">
-                <Icons.chevron />
-              </span>
-            </button>
+            {!open && (
+              <>
+                {current ? (
+                  <div className="ck-preview">
+                    <div className="eyebrow ck-current-label">Current step</div>
+                    <CkRow it={current} i={curIdx} label={items[curIdx]} />
+                  </div>
+                ) : (
+                  <div className="ck-alldone">
+                    All steps complete — agent is live.
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="ck-expand"
+                  onClick={() => setOpen(true)}
+                >
+                  Show all {total} steps{" "}
+                  <span className="ck-ex-chev">
+                    <Icons.chevron />
+                  </span>
+                </button>
+              </>
+            )}
+
+            {open && (
+              <>
+                {list.map((it, i) => (
+                  <CkRow key={i} it={it} i={i} label={items[i]} />
+                ))}
+                <button
+                  type="button"
+                  className="ck-expand"
+                  onClick={() => setOpen(false)}
+                >
+                  Show less{" "}
+                  <span className="ck-ex-chev open">
+                    <Icons.chevron />
+                  </span>
+                </button>
+              </>
+            )}
           </>
         )}
       </div>

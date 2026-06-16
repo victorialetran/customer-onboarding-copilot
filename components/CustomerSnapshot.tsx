@@ -71,11 +71,12 @@ function Risk({ r }: { r: RiskT }) {
 }
 
 export function CustomerSnapshot({ snap }: { snap: Scenario }) {
+  const isPlaceholder = !!snap.placeholder;
   return (
     <section className="card">
       <div className="panel-head">
         <span className="panel-title">Customer snapshot</span>
-        <span className="eyebrow">Knix · live</span>
+        <span className="eyebrow">Knix · {isPlaceholder ? "awaiting sync" : "live"}</span>
       </div>
       <div className="profile-body">
         {snap.accountStatus && (
@@ -89,7 +90,7 @@ export function CustomerSnapshot({ snap }: { snap: Scenario }) {
           <div className="eyebrow pf-label">Open items</div>
           {snap.openItems.length === 0 ? (
             <div className="empty-soft">
-              Nothing stale — all checklist items moving.
+              {isPlaceholder ? "—" : "Nothing stale — all checklist items moving."}
             </div>
           ) : (
             snap.openItems.map((it) => <OpenItem key={it.name} it={it} />)
@@ -99,7 +100,7 @@ export function CustomerSnapshot({ snap }: { snap: Scenario }) {
         <div className="pf-section">
           <div className="eyebrow pf-label">Risks</div>
           {snap.risks.length === 0 ? (
-            <div className="empty-soft">No risks surfaced.</div>
+            <div className="empty-soft">{isPlaceholder ? "—" : "No risks surfaced."}</div>
           ) : (
             snap.risks.map((r) => <Risk key={r.name} r={r} />)
           )}

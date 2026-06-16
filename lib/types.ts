@@ -121,6 +121,10 @@ export type Scenario = {
   recovering?: boolean;
   /** Per-approve log entries to append to the OngoingContext timeline. */
   extraTimeline?: { date: string; text: string }[];
+  /** Day 3 cold-start view: dashboard layout present but every field shows `—`. */
+  placeholder?: boolean;
+  /** Day 8 / Day 11 pre-Run view: dashboard shows the previous day's snapshot. */
+  staleSnapshot?: { snapshotDate: string };
 };
 
 export type Account = {
