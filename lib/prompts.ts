@@ -75,6 +75,9 @@ Rules:
    - flag: true ONLY for a clearly silent decision-maker who's becoming a deal risk.
 9. openItems[]: each item is a CONCRETE, EXPLICITLY-DOCUMENTED ask sitting open in the artifact comms.
    - REQUIRED: an actual asked_date you can point to in the artifacts (a specific email sent, a request logged, a meeting at which the ask was made).
+   - BOTH DIRECTIONS COUNT — be sure to capture both:
+       (a) Things WE asked the customer to do → owner = the customer-side person who owes us (e.g. Sam Park for DM platform access). asked_date = the date we sent the ask.
+       (b) Things the CUSTOMER asked US to do → owner = "Strategist". asked_date = the date of their email/message. Example: "Dani Rivera emailed Jun 3 asking for a 30-min workflow tour" → that's an open item with owner = "Strategist", asked_date = "2026-06-03". A polite "no urgency, sometime in the next 1-2 weeks" still counts — it's a concrete ask waiting for our response.
    - DO NOT invent open items for checklist steps that simply haven't been reached yet. If step 6 is blocked and step 7 hasn't started because of it, step 7 is NOT an open item — it's just sitting in the natural sequence. It belongs in the checklist array as "todo", nowhere else.
    - DO NOT fabricate an asked_date by reverse-computing from "days the checklist has been stuck" or "days since trial start." If you can't quote the artifact text where the ask was made, the item doesn't go in openItems.
    - level: "stale" = open 3–7 days; "critical" = >7 days or blocks go-live; "watch" = open <3 days.
