@@ -101,6 +101,7 @@ Rules:
     - A stakeholder went silent for >5 days (engagement risk)
     - Objective math says a target is at risk (pacing forecast)
     DO NOT invent risks based on natural sequencing ("step 7 hasn't started because step 6 is blocked" is just the sequence, not a risk). DO NOT invent risks based on inferred future concerns that aren't in the artifacts.
+    SEQUENCE-DEPENDENT STAKEHOLDERS: when a future checklist step requires a specific stakeholder's input (e.g. "brand voice sign-off needs Dani"), do NOT create a risk like "Dani not yet engaged" or "Guardrails not yet aligned" until that step is the active one AND there's evidence of delay (Dani was asked and is unresponsive, or her input was needed by date X and missed). Future steps sitting in the natural sequence behind a blocked earlier step are NOT a risk. They are just waiting their turn.
 15. risks[].name MUST be a short canonical phrase under 8 words (e.g. "Sales over-sell — sensitive-DM handling"). Same reason as openItems.`;
 
 // Prompt 2 — drafting. Returns drafts in the exact shape ActionCard renders.
