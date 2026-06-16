@@ -255,7 +255,9 @@ export default function Page() {
 
       let drafts: DraftedAction[] = [];
       let rawDrafts: string | null = null;
-      if (momentum.overall !== "green") {
+      // Prompt 2 always runs — even on green it can return 0 or 1 proactive
+      // drafts (e.g. a calendar invite when a stakeholder asks for a call).
+      {
         patchScenario(id, { phase: "drafting" });
         const stallReasons = deriveStallReasons(momentum, profile);
         const draftRes = await fetch("/api/llm", {
