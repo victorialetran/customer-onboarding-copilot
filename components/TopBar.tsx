@@ -33,7 +33,7 @@ export function TopBar({ order, scenarios, active, onPick }: Props) {
               >
                 <span
                   className="dot"
-                  style={{ background: DOT_COLOR[s.status] }}
+                  style={{ background: DOT_COLOR[s.tabStatus ?? s.status] }}
                 />
                 {s.tab} · {s.tabSub}
               </button>

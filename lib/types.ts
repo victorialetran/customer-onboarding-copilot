@@ -125,6 +125,10 @@ export type Scenario = {
   placeholder?: boolean;
   /** Day 8 / Day 11 pre-Run view: dashboard shows the previous day's snapshot. */
   staleSnapshot?: { snapshotDate: string };
+  /** Override the tab-bar dot color. Used on stale fallbacks so the tab
+   *  shows the day's TRUE color (amber/red) while the body still shows
+   *  the previous day's snapshot. Falls back to `status` when unset. */
+  tabStatus?: SignalColor;
 };
 
 export type Account = {

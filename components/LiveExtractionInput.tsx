@@ -68,7 +68,7 @@ export function LiveExtractionInput({
             >
               <span
                 className="dot"
-                style={{ background: DOT_COLOR[s.status] }}
+                style={{ background: DOT_COLOR[s.tabStatus ?? s.status] }}
               />
               Load {s.tab}
             </button>

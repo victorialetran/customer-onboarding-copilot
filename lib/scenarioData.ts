@@ -252,12 +252,15 @@ const day3Placeholder: Scenario = {
 };
 
 // Day 8 pre-Run fallback: Day 3's snapshot with Day 8 tab metadata + stale flag.
+// tabStatus overrides the tab dot to the day's TRUE color (amber) while the
+// inner Status Hero still shows the stale Day 3 healthy view until Run lands.
 const day8StaleFallback: Scenario = {
   ...day3Snapshot,
   key: "day8",
   tab: "Day 8",
   tabSub: "Stalling",
   staleSnapshot: { snapshotDate: "2026-06-03" },
+  tabStatus: "amber",
 };
 
 // Day 11 pre-Run fallback: Day 8's snapshot with Day 11 tab metadata + stale flag.
@@ -267,6 +270,7 @@ const day11StaleFallback: Scenario = {
   tab: "Day 11",
   tabSub: "At Risk",
   staleSnapshot: { snapshotDate: "2026-06-08" },
+  tabStatus: "red",
 };
 
 export const SCENARIOS: Record<ScenarioId, Scenario> = {
