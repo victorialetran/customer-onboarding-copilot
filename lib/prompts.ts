@@ -73,7 +73,11 @@ Rules:
    - tone: "good" = positive recent engagement; "warn" = cooling/quiet; "bad" = disengaged/silent; "neutral" = unknown.
    - eng: free-text descriptor — e.g. "engaged", "cooling", "silent", "needs brief", "looped in".
    - flag: true ONLY for a clearly silent decision-maker who's becoming a deal risk.
-9. openItems[].level: "stale" = open 3–7 days; "critical" = >7 days or blocks go-live; "watch" = open <3 days.
+9. openItems[]: each item is a CONCRETE, EXPLICITLY-DOCUMENTED ask sitting open in the artifact comms.
+   - REQUIRED: an actual asked_date you can point to in the artifacts (a specific email sent, a request logged, a meeting at which the ask was made).
+   - DO NOT invent open items for checklist steps that simply haven't been reached yet. If step 6 is blocked and step 7 hasn't started because of it, step 7 is NOT an open item — it's just sitting in the natural sequence. It belongs in the checklist array as "todo", nowhere else.
+   - DO NOT fabricate an asked_date by reverse-computing from "days the checklist has been stuck" or "days since trial start." If you can't quote the artifact text where the ask was made, the item doesn't go in openItems.
+   - level: "stale" = open 3–7 days; "critical" = >7 days or blocks go-live; "watch" = open <3 days.
 10. openItems[].days = days since asked_date (compute from today).
 11. high_severity_risk_realized = true ONLY when a CUSTOMER stakeholder has explicitly raised the concern in a message or escalation that appears in the artifact comms text AFTER kickoff. Default is false.
 
@@ -90,8 +94,14 @@ Rules:
 
    If you're unsure whether something counts as realized, default to FALSE.
 12. decision_maker_last_contact_date — most recent date the decision-maker actually replied. If never, use trial_start.
-13. openItems[].name MUST be a short canonical noun phrase under 8 words (e.g. "DM platform admin access", "Brand voice alignment with Dani"). Avoid descriptive sentences — Prompt 2 references these names verbatim.
-14. risks[].name MUST be a short canonical phrase under 8 words (e.g. "Sales over-sell — sensitive-DM handling"). Same reason as openItems.`;
+13. openItems[].name MUST be a short canonical noun phrase under 8 words (e.g. "DM platform admin access"). Avoid descriptive sentences — Prompt 2 references these names verbatim.
+14. risks[]: each risk MUST reflect a DOCUMENTED problem in the artifacts. Valid sources:
+    - Sales handoff explicitly listed it ("Heads up / open risks: …")
+    - A stakeholder raised a concern in a message (post-kickoff escalation)
+    - A stakeholder went silent for >5 days (engagement risk)
+    - Objective math says a target is at risk (pacing forecast)
+    DO NOT invent risks based on natural sequencing ("step 7 hasn't started because step 6 is blocked" is just the sequence, not a risk). DO NOT invent risks based on inferred future concerns that aren't in the artifacts.
+15. risks[].name MUST be a short canonical phrase under 8 words (e.g. "Sales over-sell — sensitive-DM handling"). Same reason as openItems.`;
 
 // Prompt 2 — drafting. Returns drafts in the exact shape ActionCard renders.
 // Voice is shaped to read like a real strategist writing customer-facing
@@ -247,4 +257,5 @@ DRAFT-LEVEL RULES (mechanics for the JSON output)
 7. Personalize every draft: real names from profile.who, the specific blocker, the customer's terminology, their own milestones.
 8. "type" = short imperative title for the strategist's internal queue, under 8 words (e.g. "Nudge Marcus on DM platform access"). This is internal-facing, NOT the email subject.
 9. "trigger" = one sentence naming the stall reason this draft addresses (e.g. "Blocker stale 5 days"). Internal-facing, not in the message.
-10. If a high-severity risk is realized, name it head-on in the relevant draft (using the techniques in Section 2) — don't soften it, don't hide it.`;
+10. If a high-severity risk is realized, name it head-on in the relevant draft (using the techniques in Section 2) — don't soften it, don't hide it.
+11. RECIPIENT CONSISTENCY (non-negotiable): the greeting line in the "draft" body MUST address the person named in channel.to. If channel.to says "Priya Anand · priya.anand@knix.com", the draft opens with "Hi Priya," — NEVER "Hi Dani," or any other name. Before finalizing each draft, re-read the first line of the body and confirm it matches the recipient.`;
