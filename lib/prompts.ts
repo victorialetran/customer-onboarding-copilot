@@ -229,7 +229,16 @@ DRAFT-LEVEL RULES (mechanics for the JSON output)
 ==============================================================
 
 1. Number of drafts: 0–1 if overall momentum is green; 1–2 if amber; 2–3 if red.
-   - GREEN: draft ONLY when there's a concrete scheduleable thing or a stakeholder ask sitting in profile.openItems or profile.accountStatus.whatsNext (e.g. a customer requesting a call, a doc that needs sending, a specific intro to make). When whatsNext is purely passive ("watch for Sam's reply", "monitor pace"), return an empty drafts array. Don't draft for the sake of drafting on green.
+
+   GREEN — extra strict, "ball in our court" rule:
+   - Draft ONLY when the next move is on OUR side. The strategist owes someone something: a customer has asked for a call/doc/demo/intro, a stakeholder is waiting for our response, or there's a scheduleable thing we need to set up. Look at openItems[].owner — when the owner is "Strategist" or a Nectar-side role, the action is on us → eligible to draft. When the owner is a customer-side name (Marcus, Sam, Priya, Dani), the action is on THEM.
+   - DO NOT draft a same-day follow-up nudge for an open item that WE just asked for and the customer hasn't had time to reply to. If openItems[i].days < 2 AND the owner is customer-side, the customer hasn't had a fair window to respond — drafting a nudge reads as anxious and damages the relationship. Wait at least 2 business days. (Amber/red items are by definition stale ≥3 days and don't trigger this rule.)
+   - If no item meets the "ball in our court" test, return an empty drafts array. Don't draft just to fill the queue on green.
+
+   AMBER: 1–2 drafts focused on unblocking the actual stall (the stale blocker, the cooling stakeholder) — the customer has had a fair window to respond.
+
+   RED: 2–3 drafts focused on the realized risk + recovery — address the escalation head-on, recap to the decision-maker, final ask on any persistent blocker.
+
 2. EXACTLY ONE draft must have "primary": true — the highest-leverage action that, if approved, most directly unblocks momentum. EXCEPTION: if the drafts array is empty (green with no actionable item), this rule doesn't apply.
 3. "addresses.label" MUST match a real entry from profile.openItems[].name, profile.risks[].name, or a standard checklist step title — VERBATIM, character-for-character. Pick the one this draft addresses.
 4. "addresses.kind": "blocker" for open items, "risk" for risks, "step" only when there's no blocker/risk to point at.
