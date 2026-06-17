@@ -328,9 +328,14 @@ export function extractedToScenario(
     note: c.note ?? undefined,
   }));
 
+  // Scenario-prefix the live action IDs so Day 3/Day 8/Day 11 actions never
+  // collide. Without this, every scenario's primary draft has id "live-0",
+  // and React's reconciler can reuse an ActionCard instance across scenarios —
+  // which causes the body's local state to leak (Day 3's body inside Day 8's
+  // headers).
   const actions: Action[] = drafts.map((d, i) => ({
     ...d,
-    id: `live-${i}`,
+    id: `live-${p.account.today}-${i}`,
   }));
 
   const scenario: Scenario = {

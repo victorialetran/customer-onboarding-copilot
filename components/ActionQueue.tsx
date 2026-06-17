@@ -110,6 +110,13 @@ function ActionCard({
     setOpen(first || action.priority === "high");
   }, [first, action.priority]);
 
+  // Defensive sync: if the action prop changes (different scenario reusing the
+  // same ActionCard instance), pull the new body into local state. Without this,
+  // useState(action.draft) only runs at mount and a stale body would render.
+  useEffect(() => {
+    setDraft(action.draft);
+  }, [action.id, action.draft]);
+
   if (state === "approved") {
     return (
       <div className="action resolved">
