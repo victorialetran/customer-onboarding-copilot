@@ -103,6 +103,23 @@ export type DraftsResponse = {
   drafts: DraftedAction[];
 };
 
+// Deterministic safety net for Prompt 2. The LLM occasionally produces an
+// Action object where the body greeting names a different person than the
+// channel recipient (e.g. "Hi Dani" addressed to Marcus). Drop those drafts
+// so the action queue never surfaces an obviously broken email.
+// Slack drafts have no greeting line → always pass.
+export function isDraftCoherent(d: DraftedAction): boolean {
+  if (d.channel.via !== "email") return true;
+  const namePart = (d.channel.to.split("·")[0] ?? "").trim();
+  const recipientFirst = namePart.split(/\s+/)[0];
+  if (!recipientFirst) return true;
+  const firstLine = (d.draft ?? "").trim().split("\n")[0] ?? "";
+  const m = firstLine.match(/^\s*(?:Hi|Hello|Hey|Dear)\s+([A-Z][a-zA-Z'-]+)/);
+  const greetingFirst = m?.[1];
+  if (!greetingFirst) return true;
+  return greetingFirst.toLowerCase() === recipientFirst.toLowerCase();
+}
+
 function uiColor(c: ScoringColor): SignalColor {
   return c === "yellow" ? "amber" : c;
 }

@@ -19,6 +19,7 @@ import {
   approvedActionTimelineEntry,
   deriveStallReasons,
   extractedToScenario,
+  isDraftCoherent,
   type DraftedAction,
   type DraftsResponse,
   type ExtractedProfile,
@@ -292,7 +293,11 @@ export default function Page() {
         }
         try {
           const parsed = parseStrictJson<DraftsResponse>(draftData.text);
-          drafts = Array.isArray(parsed.drafts) ? parsed.drafts : [];
+          const allDrafts = Array.isArray(parsed.drafts) ? parsed.drafts : [];
+          // Deterministic safety net — drop drafts where the body greeting
+          // doesn't match the recipient. The LLM violates this occasionally;
+          // a viewer should never see an obviously broken email.
+          drafts = allDrafts.filter(isDraftCoherent);
           rawDrafts = JSON.stringify(parsed, null, 2);
         } catch (e) {
           patchScenario(id, {
